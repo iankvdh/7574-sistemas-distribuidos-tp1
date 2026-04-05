@@ -63,7 +63,7 @@ class MessageMiddlewareQueueRabbitMQ(MessageMiddlewareQueue):
             except Exception as e:
                 if ch.is_open:
                     nack()
-                print(f"Error en lógica de usuario: {e}")
+                raise MessageMiddlewareMessageError(f"Error en lógica de usuario: {e}")
 
 
         try:
@@ -130,15 +130,25 @@ class MessageMiddlewareExchangeRabbitMQ(MessageMiddlewareExchange):
         
     def send(self, message):
         try:
-            routing_key = self._routing_keys[0] if self._routing_keys else ''
-            self._channel.basic_publish(
-                exchange=self._exchange_name,
-                routing_key=routing_key,
-                body=message,
-                properties=pika.BasicProperties(
-                    delivery_mode=2, # 2 es persistent, lo que hace que el mensaje se guarde en disco y no se pierda si RabbitMQ se reinicia
+            if not self._routing_keys: # si no hay keys, se asume que el mensaje debe ir a un exchange sin routing
+                self._channel.basic_publish(
+                    exchange=self._exchange_name,
+                    routing_key='',
+                    body=message,
+                    properties=pika.BasicProperties(delivery_mode=2)
                 )
-            )
+                return
+            
+            # Si hay keys, se envía el mensaje a cada una de ellas
+            for routing_key in self._routing_keys: 
+                self._channel.basic_publish(
+                    exchange=self._exchange_name,
+                    routing_key=routing_key,
+                    body=message,
+                    properties=pika.BasicProperties(
+                        delivery_mode=2 # 2 es persistent, lo que hace que el mensaje se guarde en disco y no se pierda si RabbitMQ se reinicia
+                    ) 
+                )
         except (pika.exceptions.AMQPConnectionError, pika.exceptions.StreamLostError):
             raise MessageMiddlewareDisconnectedError("Conexión perdida con RabbitMQ")
         except pika.exceptions.AMQPError as e:
@@ -163,7 +173,7 @@ class MessageMiddlewareExchangeRabbitMQ(MessageMiddlewareExchange):
             except Exception as e:
                 if ch.is_open:
                     nack()
-                print(f"Error en lógica de usuario (Exchange): {e}")
+                raise MessageMiddlewareMessageError(f"Error en lógica de usuario (Exchange): {e}")
 
 
         try:
