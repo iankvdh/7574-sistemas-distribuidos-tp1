@@ -31,7 +31,7 @@ class MessageMiddlewareQueueRabbitMQ(MessageMiddlewareQueue):
                 exchange='',
                 routing_key=self._queue_name,
                 body=message,
-                properties=pika.BasicProperties(delivery_mode=2), # 2 es persistent
+                properties=pika.BasicProperties(delivery_mode=2),
             )
         except (pika.exceptions.AMQPConnectionError, pika.exceptions.StreamLostError) as e:
             raise MessageMiddlewareDisconnectedError("Conexión perdida con RabbitMQ") from e
@@ -45,7 +45,7 @@ class MessageMiddlewareQueueRabbitMQ(MessageMiddlewareQueue):
             on_message_callback(body, ack, nack)
 
         try:
-            self._channel.basic_qos(prefetch_count=1) # Asegura que solo se entregue un mensaje a la vez al consumidor para que si llegara a haber más consumidores la carga se reparta entre ellos.
+            self._channel.basic_qos(prefetch_count=1)
             self._channel.basic_consume(queue=self._queue_name, on_message_callback=callback_wrapper)
             self._channel.start_consuming()
         except (pika.exceptions.AMQPConnectionError, pika.exceptions.StreamLostError) as e:
@@ -118,7 +118,7 @@ class MessageMiddlewareExchangeRabbitMQ(MessageMiddlewareExchange):
                     queue=queue_name,
                     routing_key=key,
                 )
-            self._channel.basic_qos(prefetch_count=1) # Asegura que solo se entregue un mensaje a la vez al consumidor para que si llegara a haber más consumidores la carga se reparta entre ellos.
+            self._channel.basic_qos(prefetch_count=1)
             self._channel.basic_consume(queue=queue_name, on_message_callback=callback_wrapper)
             self._channel.start_consuming()
         except (pika.exceptions.AMQPConnectionError, pika.exceptions.StreamLostError) as e:

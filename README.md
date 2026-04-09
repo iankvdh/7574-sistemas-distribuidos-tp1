@@ -1,5 +1,11 @@
 # Trabajo Práctico - Middlewares Orientados a Mensajes
 
+## Autores
+
+| Nombre         | Apellido      | Mail                  | Padrón |
+| -------------- | ------------- | --------------------- | ------ |
+| Ian            | von der Heyde | ivon@fi.uba.ar        | 107638 |
+
 Los middlewares orientados a mensajes (MOMs) son un recurso importante para el control de la complejidad en los sistemas distribuídos, puesto que permiten a las distintas partes del sistema comunicarse abstrayéndose de problemas como los cambios de ubicación, fallos, performance y escalabilidad.
 
 En este repositorio se proveen conjuntos de pruebas para los dos formas más comunes de organización de la comunicación sobre colas, que en RabbitMQ se denominan Work Queues y Exchanges.
